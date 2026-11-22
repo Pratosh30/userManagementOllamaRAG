@@ -1,0 +1,291 @@
+{
+  "info": {
+    "name": "Spring Boot User Management + Ollama AI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "resetToken",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "/api/health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/health",
+        "header": []
+      }
+    },
+    {
+      "name": "/api/auth/register",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/auth/register",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"StrongPass123!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Registration created or duplicate',()=>pm.expect([201,409]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "/api/auth/login",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/auth/login",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"StrongPass123!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Login successful',()=>pm.response.to.have.status(200));",
+              "const b=pm.response.json(); if(b.accessToken) pm.collectionVariables.set('token',b.accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "/api/auth/forgot-password",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/auth/forgot-password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test@example.com\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "/api/auth/reset-password",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/auth/reset-password",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"newPassword\": \"AnotherStrongPass456!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "/api/users/me",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/users/me",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "/api/users/me",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/users/me",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Updated Test User\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "/api/ai/query",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/ai/query",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"prompt\": \"Explain dependency injection in Spring Boot.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "/api/ai/query",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/ai/query",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"prompt\": \"This request should fail without a token.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Unauthenticated request rejected',()=>pm.expect([401,403]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "/api/rag/documents/text - ingest text (Bearer JWT)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/rag/documents/text",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"filename\": \"spring-security-notes.txt\",\n  \"text\": \"Spring Security provides authentication and authorization. Authentication verifies who the user is. Authorization determines which operations an authenticated user may perform. PasswordEncoder hashes passwords and verifies submitted passwords against stored hashes.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "/api/rag/ask - question with retrieved context (Bearer JWT)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/rag/ask",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"question\": \"What is the difference between authentication and authorization?\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    }
+  ]
+}
